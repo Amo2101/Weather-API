@@ -38,8 +38,8 @@ async function getCurrentWeather(location) {
   const response = await axios.get('https://api.openweathermap.org/data/2.5/weather', {
     params: {
       q: location, // Specify the location as a query parameter
-      appid: 'your_api_key_here', // Replace with your actual API key
-      units: 'metric' // Specify units as metric or imperial
+      appid: 'your_api_key_here', 
+      units: 'metric' 
     }
   });
 
