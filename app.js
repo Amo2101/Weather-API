@@ -7,7 +7,8 @@ const responseFormats = require('./responseFormats');
 const axios = require('axios');
 
 const morgan = require('morgan');
- 
+const NodeCache = require('node-cache');
+const cache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 
 const {  getWeatherForecast, getWeatherHistory } = require('./weather');
 
@@ -31,6 +32,10 @@ app.get ('/post', (req,res)=>{
     res.send('post');   
     });
 
+   //Authentication
+
+   
+
 //MIDDLEWEAR FOR LOGGING
     app.use(morgan('tiny'));
 
@@ -44,11 +49,21 @@ app.get('/weather/current', async (req, res) => {
     return res.status(400).json({ error: 'City parameter is required' });
   }
 
+
+ // Check if data is cached
+ const cacheKey = `weather:${city}`;
+ const cachedData = cache.get(cacheKey);
+ if (cachedData) {
+   return res.json({ ...cachedData, cached: true });
+ }
+
+
   try {
     
     const weatherData = await getCurrentWeather(city);
 
-    
+    cache.set(cacheKey, weatherData);
+
     res.json(weatherData);
   } catch (error) {
     // Handle error from API call
@@ -118,7 +133,7 @@ app.get('/weather/forecast', async (req, res) => {
 
 
 app.get('/weather/history', async (req, res) => {
-  // Extract the location and timestamps from the query parameters
+  
   const location = {
     lat: req.query.lat,
     lon: req.query.lon
@@ -130,7 +145,7 @@ app.get('/weather/history', async (req, res) => {
     // Call the getWeatherHistory function from weather.js 
     const historyData = await getWeatherHistory(location, startTimestamp, endTimestamp);
 
-    // Return the weather history data in JSON format
+  
     res.json(historyData);
   } catch (error) {
     // Handle errors 
