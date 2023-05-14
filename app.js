@@ -1,11 +1,13 @@
 const express = require ('express');
+const swaggerjsdoc = require("swagger-jsdoc");
+const swaggerui = require("swagger-ui-express");
 const app = express();
 const requestFormats = require('./requestFormats');
 const responseFormats = require('./responseFormats');
 const axios = require('axios');
 
 const morgan = require('morgan');
-
+ 
 
 const {  getWeatherForecast, getWeatherHistory } = require('./weather');
 
@@ -32,18 +34,48 @@ app.get ('/post', (req,res)=>{
 //MIDDLEWEAR FOR LOGGING
     app.use(morgan('tiny'));
 
-// 1. Defining API Endpoints
+// 1. Defining API Endpoints and Functions
+
+app.get('/weather/current', async (req, res) => {
+  const city = req.query.location;
+
+  // Check if city is provided
+  if (!city) {
+    return res.status(400).json({ error: 'City parameter is required' });
+  }
+
+  try {
+    
+    const weatherData = await getCurrentWeather(city);
+
+    
+    res.json(weatherData);
+  } catch (error) {
+    // Handle error from API call
+    if (error.response && error.response.status === 404) {
+      res.status(404).json({ error: 'City not found' });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+});
+
+
+
+
+
+
 async function getCurrentWeather(location) {
-  // Make a request to the OpenWeatherMap API to retrieve the current weather data
+  // Make a request to the OpenWeatherMap API 
   const response = await axios.get('https://api.openweathermap.org/data/2.5/weather', {
     params: {
-      q: location, // Specify the location as a query parameter
-      appid: 'your_api_key_here', 
+      q: location, 
+      appid: 'c8f116ad29c75d4fb553a21010d281be', 
       units: 'metric' 
     }
   });
 
-  // Extract the relevant data from the API response and return it as a JSON object
+  // return as a JSON
   const weatherData = {
     location: response.data.name,
     temperature: response.data.main.temp,
@@ -59,37 +91,7 @@ async function getCurrentWeather(location) {
 
 
 
-app.get('/weather/current', (req, res) => {
-  const city = req.query.location;
 
-  // Check if city is provided
-  if (!city) {
-    return res.status(400).json({ error: 'City parameter is required' });
-  }
-
-  // Make API call to get weather data
-  axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`)
-    .then(response => {
-      // Extract relevant data from API response
-      const weatherData = {
-        location: response.data.name,
-        temperature: response.data.main.temp,
-        humidity: response.data.main.humidity,
-        conditions: response.data.weather[0].description
-      };
-
-      // Send weather data as response
-      res.json(weatherData);
-    })
-    .catch(error => {
-      // Handle error from API call
-      if (error.response && error.response.status === 404) {
-        res.status(404).json({ error: 'City not found' });
-      } else {
-        res.status(500).json({ error: 'Internal server error' });
-      }
-    });
-});
 
 
 app.get('/weather/forecast', async (req, res) => {
@@ -125,23 +127,83 @@ app.get('/weather/history', async (req, res) => {
   const endTimestamp = req.query.end;
 
   try {
-    // Call the getWeatherHistory function from weather.js to retrieve the weather history data for the specified location and timestamps
+    // Call the getWeatherHistory function from weather.js 
     const historyData = await getWeatherHistory(location, startTimestamp, endTimestamp);
 
     // Return the weather history data in JSON format
     res.json(historyData);
   } catch (error) {
-    // Handle errors by returning an error message in JSON format
+    // Handle errors 
     res.status(500).json({ error: 'Unable to retrieve weather history data' });
   }
 });
 
 
 
+
+
+
+
+/**
+ * @swagger
+ * /weather/{location}:
+ *   get:
+ *     summary: Get weather forecast for a location
+ *     parameters:
+ *       - in: path
+ *         name: location
+ *         required: true
+ *         description: The location to get the weather forecast for
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/WeatherForecast'
+ */
+app.get('/weather/:location', async (req, res, next) => {
+  try {
+    const location = req.params.location;
+    const forecastData = await getWeatherForecast(location);
+    res.json(forecastData);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+const options ={
+  definition : {
+    openapi:"3.0.0",
+    info: {
+title: "Weather API",
+version:"0.1.0",
+description:"This is a simple weather API made in NodeJs"
+    },
+    servers: [
+      {
+        ulr: "http://localhost:3001/"
+      }
+    ]
+  },
+  apis:["/app.js"],
+};
   
       
+
      
-     
+    const spacs = swaggerjsdoc(options)
+app.use(
+  "/api-docs", 
+  swaggerui.serve,
+  swaggerui.setup(spacs)
+)
+
+
+
 
 
 
