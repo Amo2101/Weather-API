@@ -1,5 +1,10 @@
 const axios = require('axios');
 
+const API_BASE_URL = 'https://api.openweathermap.org/data/2.5';
+const API_KEY = 'c8f116ad29c75d4fb553a21010d281be'
+;
+
+
 async function getWeatherForecast(location) {
   try {
     const response = await axios.get(`${API_BASE_URL}/forecast`, {
@@ -39,8 +44,10 @@ async function getWeatherForecast(location) {
         lat: location.lat, // Specify the latitude of the location
         lon: location.lon, // Specify the longitude of the location
         dt: startTimestamp, // Specify the start timestamp as a UNIX timestamp
-        appid: 'your_api_key_here', // Replace with your actual API key
-        units: 'metric' // Specify units as metric or imperial
+        appid: 'c8f116ad29c75d4fb553a21010d281be'
+        
+        
+        ,units: 'metric' // Specify units as metric or imperial
       }
     });
   
