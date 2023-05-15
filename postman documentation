@@ -1,0 +1,50 @@
+{
+	"info": {
+		"_postman_id": "bf640434-e7cb-4a48-88df-5d94f79de753",
+		"name": "New Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27389344"
+	},
+	"item": [
+		{
+			"name": "postman request",
+			"item": [
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "http://localhost:3001/api/weather/forecast?location=London: Content-Type: application/json",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3001/api/weather/forecast?location=London: Content-Type: application/json",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"api",
+								"weather",
+								"forecast"
+							],
+							"query": [
+								{
+									"key": "location",
+									"value": "London: Content-Type: application/json"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
